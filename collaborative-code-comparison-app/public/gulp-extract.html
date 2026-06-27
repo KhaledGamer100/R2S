@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GULP Extractor 📋</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: #050510;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    /* Animated background orbs - matching main app */
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, -40px) scale(1.08); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-25px, 30px) scale(1.12); }
+    }
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: rgba(6,182,212,0.08);
+      top: -10%; right: 10%;
+      animation: float1 9s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: rgba(139,92,246,0.07);
+      bottom: -5%; left: 5%;
+      animation: float2 11s ease-in-out infinite;
+    }
+
+    /* Card */
+    .card {
+      background: rgba(255,255,255,0.055);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 28px;
+      padding: 44px 40px;
+      max-width: 580px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .logo-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 28px rgba(6,182,212,0.30);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      font-weight: 900;
+      background: linear-gradient(to left, #06b6d4, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      margin: 0;
+      color: rgba(255,255,255,0.38);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* Steps */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900;
+      flex-shrink: 0; margin-top: 2px;
+      box-shadow: 0 4px 12px rgba(6,182,212,0.25);
+    }
+    .step-body h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+    }
+    .step-body p {
+      margin: 0;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.7;
+    }
+
+    /* Bookmarklet drop zone */
+    .bm-zone {
+      background: rgba(6,182,212,0.06);
+      border: 2px dashed rgba(6,182,212,0.22);
+      border-radius: 18px;
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .bm-zone:hover {
+      border-color: rgba(6,182,212,0.4);
+    }
+    .bm-zone-label {
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .arrow-down {
+      display: inline-block;
+      animation: bob 1.4s ease-in-out infinite;
+    }
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(4px); }
+    }
+
+    /* The bookmarklet link - the drag target */
+    #bm-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: grab;
+      box-shadow: 0 6px 24px rgba(6,182,212,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+      letter-spacing: 0.01em;
+    }
+    #bm-link:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 10px 32px rgba(6,182,212,0.50);
+    }
+    #bm-link:active { cursor: grabbing; transform: scale(0.97); }
+
+    .drag-hint {
+      margin-top: 14px;
+      color: rgba(255,255,255,0.22);
+      font-size: 11px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .hint-sep { opacity: 0.4; }
+
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      color: rgba(255,255,255,0.18); font-size: 11px;
+      margin: 18px 0 14px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.07);
+    }
+
+    /* Copy code button */
+    #copy-btn {
+      width: 100%;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.09);
+      color: rgba(255,255,255,0.45);
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-family: 'Cairo', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    #copy-btn:hover {
+      background: rgba(255,255,255,0.085);
+      color: white;
+      border-color: rgba(255,255,255,0.18);
+    }
+    #copy-btn.success {
+      color: #10b981;
+      border-color: rgba(16,185,129,0.3);
+      background: rgba(16,185,129,0.06);
+    }
+
+    /* Preview output box */
+    .preview {
+      background: rgba(0,0,0,0.22);
+      border: 1px solid rgba(255,255,255,0.055);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-top: 22px;
+    }
+    .preview-label {
+      color: rgba(255,255,255,0.35);
+      font-size: 11px;
+      font-weight: 700;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .preview pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.9;
+      font-size: 11.5px;
+      white-space: pre-wrap;
+      color: rgba(255,255,255,0.30);
+    }
+    .clr-q  { color: #06b6d4; }
+    .clr-a  { color: #34d399; }
+    .clr-note { color: #a78bfa; }
+
+    /* Back link */
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 26px;
+      color: rgba(255,255,255,0.22);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back:hover { color: rgba(255,255,255,0.5); }
+
+    /* Chrome note */
+    .chrome-note {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.18);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11.5px;
+      color: rgba(245,158,11,0.8);
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo-icon">📋</div>
+    <h1>GULP Extractor</h1>
+    <p class="subtitle">ضغطة واحدة تنسخ كل إجاباتك من فورم GULP — من غير F12 أو Copy outerHTML</p>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">١</div>
+      <div class="step-body">
+        <h3>سحب الزرار للـ Bookmarks Bar</h3>
+        <p>اسحب الزرار الجاي ده وحطه في شريط المفضلة بتاع المتصفح — بتعمل ده مرة واحدة بس ومش محتاج تعمله تاني</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">٢</div>
+      <div class="step-body">
+        <h3>خلص ملء الفورم في GULP عادي</h3>
+        <p>اجاوب على الأسئلة زي ما بتعمل دايماً — مفيش حاجة اتغيرت في شغلك</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">٣</div>
+      <div class="step-body">
+        <h3>دوس على الزرار — هينسخ إجاباتك تلقائياً</h3>
+        <p>ضغطة واحدة على الزرار في المفضلة وهيجمع كل إجاباتك وينسخها في الـ Clipboard</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">٤</div>
+      <div class="step-body">
+        <h3>ارجع لأداة المقارنة والصق (Ctrl+V)</h3>
+        <p>حط إجاباتك في خانة الحل بتاعك — والأداة هتقارن مع زميلك تلقائياً 🎉</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarklet drop zone -->
+  <div class="bm-zone">
+    <p class="bm-zone-label">
+      <span class="arrow-down">⬇️</span>
+      اسحب الزرار ده لشريط المفضلة (Bookmarks Bar)
+    </p>
+    <a id="bm-link" title="GULP Extractor — انسخ إجاباتك بضغطة">
+      📋 GULP Extractor
+    </a>
+    <div class="drag-hint">
+      <span>☝️ اسحب فوق للـ Bookmarks Bar</span>
+      <span class="hint-sep">|</span>
+      <span>أو كليك يمين ← Add to bookmarks</span>
+    </div>
+  </div>
+
+  <div class="chrome-note">
+    ⚠️ <strong>Chrome:</strong> لو المتصفح منعك من السحب، دوس كليك يمين على الزرار ← "Add to bookmarks" أو استخدم الزرار اللي تحت بدلاً منه.
+  </div>
+
+  <div class="divider">أو</div>
+
+  <button id="copy-btn" onclick="copyCode()">
+    <span>📋</span>
+    <span>انسخ كود الـ Bookmarklet — وافتح Bookmark Manager وحطه في URL bookmark جديد</span>
+  </button>
+
+  <!-- Preview -->
+  <div class="preview">
+    <div class="preview-label">مثال للناتج بعد الاستخدام</div>
+    <pre><span class="clr-q">❓ Is there a Data/Webviz issue?</span>
+<span class="clr-a">   → No</span>
+
+<span class="clr-q">❓ Are there conversion issues for up to 5 fixed control objects within 50m?</span>
+<span class="clr-a">   → Yes</span>
+
+<span class="clr-q">❓ What is the object type?</span>
+<span class="clr-a">   → Traffic light</span>
+
+<span class="clr-q">❓ What is the closest distance of the object to the AV?</span>
+<span class="clr-note">   📝 15</span>
+
+<span class="clr-q">❓ What is the minimum range of the object to the AV?</span>
+<span class="clr-a">   → 0-30 in front</span>
+
+<span class="clr-q">❓ Is the object present on-road but not in simulation (missing object)?</span>
+<span class="clr-a">   → Yes</span>
+
+<span class="clr-q">❓ if Yes, describe missing object issue</span>
+<span class="clr-note">   📝 Traffic light missing at intersection on corner</span></pre>
+  </div>
+
+  <a href="/" class="back">← رجوع لأداة المقارنة</a>
+
+</div>
+
+<script>
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THE BOOKMARKLET FUNCTION
+  // This runs on the GULP page when the user clicks the saved bookmark.
+  // It parses the GULP decision-tree DOM and copies answers to the clipboard.
+  // ─────────────────────────────────────────────────────────────────────────────
+  function gulpExtractor() {
+    var out = [];
+    var seenTextareas = new Set();
+
+    // ── 1. Walk all .node-base elements in document order ──────────────────────
+    // Questions have style="cursor: pointer"
+    // Answers/labels have style="padding: 0px 5px"
+    var nodes = document.querySelectorAll('.node-base');
+    nodes.forEach(function (node) {
+      // Skip checkbox label rows — handled separately below
+      if (node.closest('.cVdngm')) return;
+
+      var h6 = node.querySelector('h6');
+      if (!h6) return;
+
+      var text = h6.textContent.trim();
+      if (!text || text === 'Expand') return;
+
+      var style = node.getAttribute('style') || '';
+
+      if (style.indexOf('cursor: pointer') > -1) {
+        // It's a clickable question
+        out.push('\n❓ ' + text);
+      } else {
+        // It's a selected answer or a free-text label
+        out.push('   → ' + text);
+      }
+
+      // If the next sibling is a <form>, it contains a textarea for this node
+      var sibling = node.nextElementSibling;
+      if (sibling && sibling.tagName === 'FORM') {
+        var ta = sibling.querySelector('textarea');
+        if (ta && !seenTextareas.has(ta)) {
+          seenTextareas.add(ta);
+          var val = ta.value.trim();
+          out.push('   📝 ' + (val || '---'));
+        }
+      }
+    });
+
+    // ── 2. Get checked checkboxes ──────────────────────────────────────────────
+    document.querySelectorAll('.cVdngm').forEach(function (row) {
+      var cb = row.querySelector('input[type="checkbox"]');
+      var lb = row.querySelector('.node-base h6');
+      if (cb && lb && cb.checked) {
+        out.push('   ☑️ ' + lb.textContent.trim());
+      }
+    });
+
+    var result = out.join('\n').trim();
+
+    // ── 3. Copy to clipboard ───────────────────────────────────────────────────
+    function copyText(t) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(t);
+      }
+      // Fallback for older/restricted browsers
+      var el = document.createElement('textarea');
+      el.value = t;
+      el.style.cssText = 'position:fixed;top:-999px;left:-999px;opacity:0;';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      return Promise.resolve();
+    }
+
+    // ── 4. Toast notification ──────────────────────────────────────────────────
+    function toast(msg, isErr) {
+      // Remove any existing toast
+      var existing = document.getElementById('__gulp_ext_toast__');
+      if (existing) existing.remove();
+
+      var d = document.createElement('div');
+      d.id = '__gulp_ext_toast__';
+      d.textContent = msg;
+      d.style.cssText = [
+        'position:fixed', 'top:20px', 'right:20px',
+        'z-index:2147483647',
+        isErr
+          ? 'background:#ef4444'
+          : 'background:linear-gradient(135deg,#06b6d4,#8b5cf6)',
+        'color:#fff',
+        'padding:14px 22px',
+        'border-radius:14px',
+        'font-size:15px',
+        'font-family:Cairo,Arial,sans-serif',
+        'box-shadow:0 6px 28px rgba(0,0,0,.55)',
+        'font-weight:800',
+        'direction:rtl',
+        'cursor:pointer',
+        'max-width:380px',
+        'line-height:1.5'
+      ].join(';');
+      d.onclick = function () { d.remove(); };
+      document.body.appendChild(d);
+      setTimeout(function () { if (d.parentNode) d.remove(); }, 5500);
+    }
+
+    // ── 5. Guard: make sure we found something ─────────────────────────────────
+    if (!result) {
+      toast('⚠️ مش لاقي بيانات GULP في الصفحة دي.\nتأكد إنك فاتح صفحة فورم GULP وليس أي صفحة تانية.', true);
+      return;
+    }
+
+    copyText(result)
+      .then(function () {
+        var lineCount = result.split('\n').filter(function (l) { return l.trim(); }).length;
+        toast('✅ تم نسخ ' + lineCount + ' سطر!\nارجع لأداة المقارنة والصق (Ctrl+V) 🎉');
+      })
+      .catch(function () {
+        toast('⚠️ فشل النسخ التلقائي. جرب كليك يمين ← Paste أو تواصل مع المطور.', true);
+      });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Generate the bookmarklet URL from the function source
+  // ─────────────────────────────────────────────────────────────────────────────
+  (function () {
+    var fnSrc = gulpExtractor.toString();
+    var bookmarkletUrl = 'javascript:(' + fnSrc + ')();';
+    var link = document.getElementById('bm-link');
+    link.href = bookmarkletUrl;
+  })();
+
+  // Copy code button handler
+  function copyCode() {
+    var url = document.getElementById('bm-link').href;
+    var btn = document.getElementById('copy-btn');
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function () {
+        btn.innerHTML = '<span>✅</span><span>تم النسخ! افتح Bookmarks Manager (Ctrl+Shift+O) وضيف Bookmark جديد وحط الكود في حقل URL</span>';
+        btn.classList.add('success');
+        setTimeout(function () {
+          btn.innerHTML = '<span>📋</span><span>انسخ كود الـ Bookmarklet — وافتح Bookmark Manager وحطه في URL bookmark جديد</span>';
+          btn.classList.remove('success');
+        }, 5000);
+      });
+    } else {
+      // Very old browser
+      var ta = document.createElement('textarea');
+      ta.value = url;
+      ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+      btn.innerHTML = '<span>✅</span><span>تم النسخ!</span>';
+      btn.classList.add('success');
+      setTimeout(function () {
+        btn.innerHTML = '<span>📋</span><span>انسخ كود الـ Bookmarklet</span>';
+        btn.classList.remove('success');
+      }, 3000);
+    }
+  }
+</script>
+</body>
+</html>
